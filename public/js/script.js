@@ -1,6 +1,16 @@
 const form = document.getElementById("todo-form");
+const formLogin = document.getElementById("login-form");
+const formRegister = document.getElementById("register-form");
 const input = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
+
+const inputNamelogin = document.getElementById("login-input-name");
+const inputPasswordlogin = document.getElementById("login-input-password");
+const inputEmaillogin = document.getElementById("login-input-email");
+
+const inputNameRegister = document.getElementById("register-input-name");
+const inputPasswordRegister = document.getElementById("register-input-password");
+const inputEmailRegister = document.getElementById("register-input-email");
 
 console.log("running");
 
@@ -96,6 +106,46 @@ window.editTodo = async (id, oldTitle) => {
 };
 
 fetchTodos();
+
+formRegister.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/auth/register", {
+        method: "POST",
+        headers: { "Content-Type" : "application/json"},
+        body: JSON.stringify({
+            name: inputNameRegister.value,
+            email: inputEmailRegister.value,
+            password: inputPasswordRegister.value
+        })
+    })
+
+    const data = await res.json();
+    if(data.token){
+        localStorage.setItme("token", data.token);
+        fetchTodos();
+    } else {
+        alert("Register gagal");
+    }
+});
+
+formLogin.addEventListener("submit", async (e) => {
+    const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type" : "application/json"},
+        body: JSON.stringify({
+            email: inputEmaillogin,
+            password: inputPasswordlogin
+        })
+    })
+
+    const data = await res.json();
+    if(data.token){
+        localStorage.setItme("token", data.token);
+        fetchTodos();
+    } else {
+        alert("Login gagal");
+    }
+});
 
 async function login(email, password) {
     const res = await fetch("/auth/login", {
