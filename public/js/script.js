@@ -96,3 +96,24 @@ window.editTodo = async (id, oldTitle) => {
 };
 
 fetchTodos();
+
+async function login(email, password) {
+    const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type" : "application/json"},
+        body: JSON.stringify({ email, password})
+    })
+
+    const data = await res.json();
+    if(data.token){
+        localStorage.setItme("token", data.token);
+        fetchTodos();
+    } else {
+        alert("Login gagal");
+    }
+}
+
+function logout(){
+    localStorage.removeItem("token");
+    alert("Logout berhasil");
+}

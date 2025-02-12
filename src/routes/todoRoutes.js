@@ -1,22 +1,24 @@
 const express = require("express");
-const router = express.Router();
 const Todo = require("../models/Todo");
+const authMiddleware = require("../middleware/authMiddleware");
+
+const router = express.Router();
 
 // Create a new todo
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   const newTodo = new Todo(req.body);
   await newTodo.save();
   res.status(201).json(newTodo);
 });
 
 //Get All
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   const todos = await Todo.find();
   res.json(todos);
 });
 
 // Update Todo
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   const updateTodo = await Todo.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -26,7 +28,7 @@ router.put("/:id", async (req, res) => {
 
 
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   await Todo.findByIdAndDelete(req.params.id);
   res.json({message: "Delete successfully"});
 });
