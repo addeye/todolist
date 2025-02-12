@@ -17,16 +17,18 @@ router.get("/", async (req, res) => {
 
 // Update Todo
 router.put("/:id", async (req, res) => {
-  const updateTodo = await Todo.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  const updateTodo = await Todo.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {new: true});
   res.json(updateTodo);
 });
+
 
 
 router.delete("/:id", async (req, res) => {
   await Todo.findByIdAndDelete(req.params.id);
   res.json({message: "Delete successfully"});
-} )
+});
 
 module.exports = router;
