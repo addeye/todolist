@@ -1,0 +1,22 @@
+### 1. GET
+GET http://localhost:5000/todos
+
+### 2. POST
+POST http://localhost:5000/todos
+Content-Type: application/json
+
+{
+    "title" : "Perbaiki sandal",
+    "description" : "Sandal putus karena jatuh"
+}
+
+### 3. PUT
+PUT http://localhost:5000/todos/67ac0dcba96ff3abb714d350
+Content-Type: application/json
+
+{
+    "title" : "Perbaiki sandal adi"
+}
+
+### 4. Delete
+DELETE http://localhost:5000/todos/67ac0dcba96ff3abb714d350
