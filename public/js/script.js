@@ -1,6 +1,12 @@
+// const User = require("../models/User");
+
+// const { cookie } = require("express-validator");
+
 const form = document.getElementById("todo-form");
 const formLogin = document.getElementById("login-form");
 const formRegister = document.getElementById("register-form");
+const formLogout = document.getElementById("logout-form");
+
 const input = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
 
@@ -34,7 +40,12 @@ function animateRemove(li){
 
 // mengambil dari server
 async function fetchTodos() {
-  const res = await fetch("/todos");
+  const res = await fetch("/todos",{
+    headers: {
+      contentType: "application/json",
+    },
+    credentials: "include",
+  });
   const todos = await res.json();
 
   saveToLocal(todos);
@@ -44,32 +55,38 @@ async function fetchTodos() {
 function renderTodos(todos){
     list.innerHTML = "";
 
-  todos.forEach((todo) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-                <span>
-                    <input type="checkbox" ${
-                  todo.completed ? "checked" : ""
-                } onclick="toggleTodo('${todo._id}', ${!todo.completed})">
-                <span>${todo.title}</span>
-                </span>
-                <span>
-                    <button onclick="editTodo('${todo._id}', '${todo.title}')">✏️</button>
-                    <button onclick="deleteTodo('${todo._id}', this.parentElement)">❌</button>
-                </span>
-            `;
-    list.appendChild(li);
-    animateAdd(li);
-  });
+  if(todos.length === 0){
+    list.innerHTML = "<p>Belum ada tugas</p>";
+  } else {
+    todos.forEach((todo) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+                  <span>
+                      <input type="checkbox" ${
+                    todo.completed ? "checked" : ""
+                  } onclick="toggleTodo('${todo._id}', ${!todo.completed})">
+                  <span>${todo.title}</span>
+                  </span>
+                  <span>
+                      <button onclick="editTodo('${todo._id}', '${todo.title}')">✏️</button>
+                      <button onclick="deleteTodo('${todo._id}', this.parentElement)">❌</button>
+                  </span>
+              `;
+      list.appendChild(li);
+      console.log(list);
+      animateAdd(li);
+    });
+  }
 }
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   const newTodo = { title: input.value, description: "-" };
 
   await fetch("/todos", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
     body: JSON.stringify(newTodo),
   });
 
@@ -80,14 +97,14 @@ form.addEventListener("submit", async (e) => {
 // fungsi delete
 window.deleteTodo = async (id, liElement) => {
     animateRemove(liElement);
-  await fetch(`/todos/${id}`, { method: "DELETE" });
+  await fetch(`/todos/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
   fetchTodos();
 };
 
 window.toggleTodo = async (id, completed) => {
   await fetch(`/todos/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
     body: JSON.stringify({ completed: completed }),
   });
   fetchTodos();
@@ -98,7 +115,7 @@ window.editTodo = async (id, oldTitle) => {
   if (newTitle && newTitle !== oldTitle) {
     await fetch(`/todos/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({ title: newTitle }),
     });
     fetchTodos();
@@ -121,7 +138,7 @@ formRegister.addEventListener("submit", async (e) => {
 
     const data = await res.json();
     if(data.token){
-        localStorage.setItme("token", data.token);
+        saveToken(data.token);
         fetchTodos();
     } else {
         alert("Register gagal");
@@ -129,21 +146,36 @@ formRegister.addEventListener("submit", async (e) => {
 });
 
 formLogin.addEventListener("submit", async (e) => {
+    e.preventDefault();
     const res = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type" : "application/json"},
         body: JSON.stringify({
-            email: inputEmaillogin,
-            password: inputPasswordlogin
-        })
-    })
+            email: inputEmaillogin.value,
+            password: inputPasswordlogin.value
+        }),
+        credentials: "include"
+    });
 
     const data = await res.json();
-    if(data.token){
-        localStorage.setItme("token", data.token);
-        fetchTodos();
+    if (res.ok) {
+      alert("Login sukses!");
     } else {
-        alert("Login gagal");
+      alert("Login gagal!");
+    }
+});
+
+formLogout.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const res = await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "include"
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert("Logout sukses!");
+    } else {
+      alert("Logout gagal!");
     }
 });
 
@@ -156,14 +188,10 @@ async function login(email, password) {
 
     const data = await res.json();
     if(data.token){
+      console.log(data.token);
         localStorage.setItme("token", data.token);
         fetchTodos();
     } else {
         alert("Login gagal");
     }
-}
-
-function logout(){
-    localStorage.removeItem("token");
-    alert("Logout berhasil");
 }

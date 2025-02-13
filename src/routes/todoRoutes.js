@@ -6,6 +6,9 @@ const router = express.Router();
 
 // Create a new todo
 router.post("/", authMiddleware, async (req, res) => {
+
+  req.body.user = req.user;
+
   const newTodo = new Todo(req.body);
   await newTodo.save();
   res.status(201).json(newTodo);
@@ -13,7 +16,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
 //Get All
 router.get("/", authMiddleware, async (req, res) => {
-  const todos = await Todo.find();
+  const todos = await Todo.find({user: req.user});
   res.json(todos);
 });
 
